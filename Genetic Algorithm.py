@@ -44,7 +44,7 @@ def getBestSolutions(randomchoicedict, randomChoiceDemand):
     solutions.append({"district": list(randomChoiceDict.keys()), "maxValue": maxValue})
 
 
-def finalSolution(solution, ffValue, ffList):
+def finalSolution(solution, ffValue, ffList, conSupDict, conDemDict):
     for sol in solution:
         if sol["maxValue"] > ffValue:
             ffValue = sol["maxValue"]
@@ -52,6 +52,11 @@ def finalSolution(solution, ffValue, ffList):
     print("First Fitness Value : " + str(ffValue))
     print("First Fitness Disctricts : ")
     print(list(distr for distr in ffList))
+    print("Supply : ")
+    print(list(conSupDict[distr] for distr in ffList))
+    print("Demand : ")
+    print(list(conDemDict[distr] for distr in ffList))
+
 
 def getProducerList(randomDemandValue, randomchoice):
     temp = 0.0
@@ -100,4 +105,4 @@ fFSupply, fFDemand, fF, sFSupply, sFDemand, sF = crossOver(firstFitSupply, first
 firstDict, secondDict = dict(zip(fF, fFSupply)), dict(zip(sF, sFSupply))
 getBestSolutions(firstDict, firstFitDemand)
 getBestSolutions(secondDict, secondFitDemand)
-finalSolution(solutions, firstFitValue, firstFit)
+finalSolution(solutions, firstFitValue, firstFit, conSupDict, conDemDict)
