@@ -21,7 +21,7 @@ def getbestsolution(randomchoicedict, randomChoiceDemand):
     solutions = []
     tempDict = randomchoicedict.copy()
     solutions.append(tempDict)
-    maxValue = getproducerlist(randomChoiceDemand, list(tempDict.values())) + getproducermoisture(moisture)
+    maxValue = getproducerlist(randomChoiceDemand, list(tempDict.values()))
 
     if len(tempDict) > 1:
         for x in range(2, len(tempDict) + 1):
@@ -31,7 +31,7 @@ def getbestsolution(randomchoicedict, randomChoiceDemand):
                 for key in tempValues[:-1]:
                     tempDict[tempValues[-1]] = tempDict[tempValues[-1]] + tempDict[key]
                     tempDict[key] = 0
-                getValue = getproducerlist(randomChoiceDemand, list(tempDict.values())) + getproducermoisture(moisture)
+                getValue = getproducerlist(randomChoiceDemand, list(tempDict.values()))
                 if (maxValue == getValue):
                     solutions.append(tempDict)
                 if (maxValue < getValue):
