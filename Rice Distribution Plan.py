@@ -21,17 +21,27 @@ def getbestsolution(randomchoicedict, randomChoiceDemand):
     solutions = []
     tempDict = randomchoicedict.copy()
     solutions.append(tempDict)
+    print(f"tempDict : {tempDict}")
+    print(f"solutions : {solutions}")
+    print(f"randomChoiceDemand : {randomChoiceDemand}")
+    print(f"list(tempDict.values()) : {list(tempDict.values())}")
     maxValue = getproducerlist(randomChoiceDemand, list(tempDict.values()))
+    print(f"maxValue : {maxValue}")
 
     if len(tempDict) > 1:
         for x in range(2, len(tempDict) + 1):
+            print(f"x : {x}")
             for item in list(itertools.permutations(list(tempDict.keys()), x)):
+                print(f"item : {item}")
                 tempValues = list(item)
                 tempDict = randomchoicedict.copy()
                 for key in tempValues[:-1]:
+                    print(f"key : {key}")
                     tempDict[tempValues[-1]] = tempDict[tempValues[-1]] + tempDict[key]
                     tempDict[key] = 0
+                print(f"final -----------------------------> {list(tempDict.values())}")
                 getValue = getproducerlist(randomChoiceDemand, list(tempDict.values()))
+                print(f"getValue : {getValue}")
                 if (maxValue == getValue):
                     solutions.append(tempDict)
                 if (maxValue < getValue):
@@ -39,6 +49,7 @@ def getbestsolution(randomchoicedict, randomChoiceDemand):
                     solutions.clear()
                     solutions.append(tempDict)
 
+    print(f"solutions : {solutions}")
     randomSolution = random.choice(solutions)
 
     for cons in consumer:
@@ -57,15 +68,15 @@ def getbestsolution(randomchoicedict, randomChoiceDemand):
     print(f"\nFitness Value : {maxValue}")
 
 
-def getproducerlist(demand, randomchoicedemand):
+def getproducerlist(demand, randomChoiceSupply):
     temp = 0.0
     for x in range(len(supply)):
-        if (demand[x] == randomchoicedemand[x]):
-            temp = temp + 0.1
-        if (demand[x] < randomchoicedemand[x]):
-            temp = temp + 0.0
-        if (demand[x] > randomchoicedemand[x]):
+        if (demand[x] == randomChoiceSupply[x]):
+            temp = temp + 1
+        if (demand[x] < randomChoiceSupply[x]):
             temp = temp + 0.5
+        if (demand[x] > randomChoiceSupply[x]):
+            temp = temp + 0
     return temp
 
 
@@ -95,17 +106,23 @@ with open('db.csv', mode='r') as db:
 
 conSupDict = dict(zip(consumer, supply))
 conDemDict = dict(zip(consumer, demand))
-
+print(f"conSupDict : {conSupDict}")
+print(f"conDemDict : {conDemDict}")
 # get all the possibilities from the consumer list
 allPossibilities = [list(row) for row in itertools.permutations(consumer)]
+print(f"allPossibilities : {allPossibilities}")
 # select one random choice from the all possibilities
 randomChoice = random.choice(allPossibilities)
+print(f"randomChoice : {randomChoice}")
 # get demand for randomly choice district
-randomChoiceDemand = getDemandSupplylist(conSupDict, randomChoice)
-randomChoiceSupply = getDemandSupplylist(conDemDict, randomChoice)
-randomChoiceDict = dict(zip(randomChoice, randomChoiceDemand))
+randomChoiceSupply = getDemandSupplylist(conSupDict, randomChoice)
+print(f"randomChoiceSupply : {randomChoiceSupply}")
+randomChoiceDemand = getDemandSupplylist(conDemDict, randomChoice)
+print(f"randomChoiceDemand : {randomChoiceDemand}")
+randomChoiceDict = dict(zip(randomChoice, randomChoiceSupply))
+print(f"randomChoiceDict : {randomChoiceDict}")
 getbestsolution(randomChoiceDict, randomChoiceDemand)
 
-# getProducerList(supply, randomChoiceDemand)
+# getProducerList(supply, randomChoiceSupply)
 
 # print(list(itertools.combinations(consumer, 2)))
