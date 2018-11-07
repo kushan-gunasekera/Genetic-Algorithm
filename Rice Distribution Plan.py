@@ -10,37 +10,63 @@ import csv
 # print(geocode_result)
 
 
-def getDemandSupplylist(condemdic, randomchoice):
+def getDemandList(demand, randomchoice):
     temp = []
     for item in randomchoice:
-        temp.append(condemdic[item])
+        temp.append(demand[item])
     return temp
 
 
-def getbestsolution(randomchoicedict, randomChoiceDemand):
+def getSupplyList(supply, district, randomChoice):
+    temp = []
+    for item in randomChoice:
+        temp.append(supply[district[item]])
+    return temp
+
+
+def getValuesDict(randomDict, randomDemand):
+    temp = {}
+    for key in randomDemand.keys():
+        pass
+
+
+
+def getBestSolution(randomChoiceDict, randomChoiceDemand, districtDict):
+    print("*****************************************************************************************")
     solutions = []
-    tempDict = randomchoicedict.copy()
-    solutions.append(tempDict)
-    print(f"tempDict : {tempDict}")
-    print(f"solutions : {solutions}")
+    print(f"randomChoiceDict : {randomChoiceDict}")
     print(f"randomChoiceDemand : {randomChoiceDemand}")
-    print(f"list(tempDict.values()) : {list(tempDict.values())}")
-    maxValue = getproducerlist(randomChoiceDemand, list(tempDict.values()))
+    print(f"districtDict : {districtDict}")
+    print(f"list(randomChoiceDemand.values()) : {list(randomChoiceDemand.values())}")
+    print(f"list(randomChoiceDict.values()) : {list(randomChoiceDict.values())}")
+    maxValue = getProducerList(list(randomChoiceDemand.values()), list(randomChoiceDict.values()))
     print(f"maxValue : {maxValue}")
 
-    if len(tempDict) > 1:
-        for x in range(2, len(tempDict) + 1):
+    # demandTempList = []
+    # for key in randomChoiceDemand.keys():
+    #     demandTempList.append(randomChoiceDict[districtDict[key]])
+
+    demandTempDict = dict(zip(list(randomChoiceDemand.keys()), list(randomChoiceDict.values())))
+    solutions.append(demandTempDict)
+    print(f"solutions : {solutions}")
+
+    if len(randomChoiceDict) > 1:
+        for x in range(2, len(randomChoiceDict) + 1):
             print(f"x : {x}")
-            for item in list(itertools.permutations(list(tempDict.keys()), x)):
+            for item in list(itertools.permutations(list(randomChoiceDemand.keys()), x)):
                 print(f"item : {item}")
                 tempValues = list(item)
-                tempDict = randomchoicedict.copy()
+                tempDict = dict(zip(list(randomChoiceDemand.keys()), list(randomChoiceDict.values())))
+                print(f"tempDict : {tempDict}")
+                print(f"tempValues : {tempValues}")
+                print(f"randomChoiceDemand : {randomChoiceDemand}")
+                print(f"randomChoiceDict : {randomChoiceDict}")
                 for key in tempValues[:-1]:
                     print(f"key : {key}")
                     tempDict[tempValues[-1]] = tempDict[tempValues[-1]] + tempDict[key]
                     tempDict[key] = 0
-                print(f"final -----------------------------> {list(tempDict.values())}")
-                getValue = getproducerlist(randomChoiceDemand, list(tempDict.values()))
+                print(f"final -----------------------------> {tempDict}")
+                getValue = getProducerList(list(randomChoiceDemand.values()), list(tempDict.values()))
                 print(f"getValue : {getValue}")
                 if (maxValue == getValue):
                     solutions.append(tempDict)
@@ -68,7 +94,10 @@ def getbestsolution(randomchoicedict, randomChoiceDemand):
     print(f"\nFitness Value : {maxValue}")
 
 
-def getproducerlist(demand, randomChoiceSupply):
+def getProducerList(demand, randomChoiceSupply):
+    print("=============================================")
+    print(f"demand : {demand}")
+    print(f"randomChoiceSupply : {randomChoiceSupply}")
     temp = 0.0
     for x in range(len(supply)):
         if (demand[x] == randomChoiceSupply[x]):
@@ -77,19 +106,21 @@ def getproducerlist(demand, randomChoiceSupply):
             temp = temp + 0.5
         if (demand[x] > randomChoiceSupply[x]):
             temp = temp + 0
+    print(f"temp : {temp}")
+    print("=============================================")
     return temp
 
 
-def getproducermoisture(moisture):
-    initMmistureValue, temp = 13, 0.0
-    for item in moisture:
-        if (item == initMmistureValue):
-            temp = temp + 1.0
-        if (item < initMmistureValue):
-            temp = temp + 0.5
-        if (item > initMmistureValue):
-            temp = temp + 0.0
-    return temp
+# def getproducermoisture(moisture):
+#     initMmistureValue, temp = 13, 0.0
+#     for item in moisture:
+#         if (item == initMmistureValue):
+#             temp = temp + 1.0
+#         if (item < initMmistureValue):
+#             temp = temp + 0.5
+#         if (item > initMmistureValue):
+#             temp = temp + 0.0
+#     return temp
 
 
 # details according to district
@@ -97,32 +128,42 @@ producer, consumer, supply, demand = [], [], [], []
 csvCount = 0
 with open('db.csv', mode='r') as db:
     for row in csv.reader(db):
-        if csvCount != 0:
+        if csvCount != 0 and row != []:
             producer.append(row[1])
             supply.append(float(row[2]))
             consumer.append(row[3])
             demand.append(float(row[4]))
         csvCount += 1
 
-conSupDict = dict(zip(consumer, supply))
+conSupDict = dict(zip(producer, supply))
 conDemDict = dict(zip(consumer, demand))
+districtDict = dict(zip(consumer, producer))
 print(f"conSupDict : {conSupDict}")
 print(f"conDemDict : {conDemDict}")
+print(f"districtDict : {districtDict}")
 # get all the possibilities from the consumer list
 allPossibilities = [list(row) for row in itertools.permutations(consumer)]
 print(f"allPossibilities : {allPossibilities}")
+
 # select one random choice from the all possibilities
 randomChoice = random.choice(allPossibilities)
 print(f"randomChoice : {randomChoice}")
+
 # get demand for randomly choice district
-randomChoiceSupply = getDemandSupplylist(conSupDict, randomChoice)
+randomChoiceSupply = getSupplyList(conSupDict, districtDict, randomChoice)
 print(f"randomChoiceSupply : {randomChoiceSupply}")
-randomChoiceDemand = getDemandSupplylist(conDemDict, randomChoice)
+
+randomChoiceDemand = getDemandList(conDemDict, randomChoice)
 print(f"randomChoiceDemand : {randomChoiceDemand}")
-randomChoiceDict = dict(zip(randomChoice, randomChoiceSupply))
+
+producer.clear()
+for key in randomChoice:
+    producer.append(districtDict[key])
+
+randomChoiceDict = dict(zip(producer, randomChoiceSupply))
 print(f"randomChoiceDict : {randomChoiceDict}")
-getbestsolution(randomChoiceDict, randomChoiceDemand)
 
-# getProducerList(supply, randomChoiceSupply)
+randomChoiceDemandDict = dict(zip(randomChoice, randomChoiceDemand))
+print(f"randomChoiceDemandDict : {randomChoiceDemandDict}")
 
-# print(list(itertools.combinations(consumer, 2)))
+getBestSolution(randomChoiceDict, randomChoiceDemandDict, districtDict)
