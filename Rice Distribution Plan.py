@@ -2,12 +2,11 @@ import itertools
 import random
 import googlemaps
 import csv
+import re
+import asyncio
+from typing import List
 
-# gmaps = googlemaps.Client(key="")
-
-# Geocoding an address
-# geocode_result = gmaps.distance_matrix('Anuradhapura', 'Gampaha')
-# print(geocode_result)
+gmaps = googlemaps.Client(key="AIzaSyCs7sVUeFUoAEsWoD5g64ww2fG39Qw2Ayk")
 
 
 def getDemandList(demand, randomchoice):
@@ -24,11 +23,31 @@ def getSupplyList(supply, district, randomChoice):
     return temp
 
 
-def getValuesDict(randomDict, randomDemand):
-    temp = {}
-    for key in randomDemand.keys():
-        pass
+def getValuesDict(districtNames):
+    factorValue = 0
+    for k, v in districtDict.items():
+        if isinstance(v, List):
+            for district in v:
+                factorValue = factorValue + calculateDistance(k, district)
+        else:
+            factorValue = factorValue + calculateDistance(k, v)
+    return factorValue
 
+
+# Geocoding an address
+def calculateDistance(origin_addresses, destination_addresses):
+    try:
+        geocode_result = gmaps.distance_matrix(origin_addresses, destination_addresses)
+        print(f"geocode_result : {geocode_result}")
+        distanceInStr = geocode_result['rows'][0]['elements'][0]['distance']['text']
+        distanceInInt = int(re.search(r'\d+', distanceInStr).group())
+        if distanceInInt > 150:
+            return 0
+        else:
+            return 1
+    except Exception as e:
+        print(f"exception : {e}")
+        return 0
 
 
 def getBestSolution(randomChoiceDict, randomChoiceDemand, districtDict):
@@ -54,9 +73,12 @@ def getBestSolution(randomChoiceDict, randomChoiceDemand, districtDict):
         for x in range(2, len(randomChoiceDict) + 1):
             print(f"x : {x}")
             for item in list(itertools.permutations(list(randomChoiceDemand.keys()), x)):
+                tempDistrictDict = districtDict.copy()
+                movedDistrict = []
                 print(f"item : {item}")
                 tempValues = list(item)
                 tempDict = dict(zip(list(randomChoiceDemand.keys()), list(randomChoiceDict.values())))
+                print(f"tempDistrictDict : {tempDistrictDict}")
                 print(f"tempDict : {tempDict}")
                 print(f"tempValues : {tempValues}")
                 print(f"randomChoiceDemand : {randomChoiceDemand}")
@@ -64,9 +86,15 @@ def getBestSolution(randomChoiceDict, randomChoiceDemand, districtDict):
                 for key in tempValues[:-1]:
                     print(f"key : {key}")
                     tempDict[tempValues[-1]] = tempDict[tempValues[-1]] + tempDict[key]
+                    movedDistrict.append(tempDistrictDict[key])
+                    del tempDistrictDict[key]
                     tempDict[key] = 0
+                movedDistrict.append(tempDistrictDict[tempValues[-1]])
+                tempDistrictDict[tempValues[-1]] = movedDistrict
+                print(f"final district list : {tempDistrictDict}")
+                print(f"tempDict : {tempDict} ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
                 print(f"final -----------------------------> {tempDict}")
-                getValue = getProducerList(list(randomChoiceDemand.values()), list(tempDict.values()))
+                getValue = getProducerList(list(randomChoiceDemand.values()), list(tempDict.values())) + getValuesDict(tempDistrictDict)
                 print(f"getValue : {getValue}")
                 if (maxValue == getValue):
                     solutions.append(tempDict)
